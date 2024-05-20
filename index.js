@@ -7,7 +7,7 @@ app.use(express.json());
 
 // Define a simple route
 app.get('/', (req, res) => {
-  res.send('Hare, Krnaaa-Haribol');
+  res.send('Hello, W');
 });
 
 app.get('/test', (req, res) => {
