@@ -1,18 +1,37 @@
 pipeline {
     agent any
+
     stages {
+        stage('Get approval') {
+            options {
+                timeout(time: 59, unit: 'MINUTES')
+            }
+            steps {
+                input "Please Approve To Proceed The Deployment"
+            }
+        }
+
+        stage('Checkout') {
+            steps {
+                sh "git clone -b staging git@github.com:tgrid-usa/tg-super-admin-dashboard.git"
+                dir('tg-super-admin-dashboard') {
+                    sh 'ls -la'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 echo 'Building...'
-               
             }
         }
+
         stage('Test') {
             steps {
                 echo 'Testing...'
-              
             }
         }
+
         stage('Deploy') {
             steps {
                 echo 'Deploying...'
