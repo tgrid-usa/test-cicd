@@ -13,7 +13,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                sh "git clone -b staging git@github.com:tgrid-usa/tg-super-admin-dashboard.git"
+                sh "git clone -b staging git@github.com:tgrid-usa/test-cicd.git"
                 dir('tg-super-admin-dashboard') {
                     sh 'ls -la'
                 }
