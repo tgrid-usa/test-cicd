@@ -11,7 +11,7 @@ pipeline {
             }
         }
 
-        stage('Checkout') {
+        stage('Checkout Latest Code') {
             steps {
                 dir('tg-test-cicd') {
                     git branch: 'staging',
@@ -21,6 +21,27 @@ pipeline {
                 }
             }
         }
+        
+    stages {
+        stage('Checkout Docker File') {
+            steps {
+                script {
+                    sh '''
+                    rm -rf staging-dockerfile
+                    git clone --no-checkout --depth 1 -b staging --filter=blob:none https://github.com/tgrid-usa/staging-dockerfile.git staging-dockerfile
+                    cd staging-dockerfile
+                    git sparse-checkout init --cone
+                    git sparse-checkout set Dockerfile
+                    git checkout
+                    mv Dockerfile ../Dockerfile
+                    cd ..
+                    rm -rf staging-dockerfile
+                    ls -la
+                    '''
+                }
+            }
+        }
+    }
 
         stage('Build') {
             steps {
