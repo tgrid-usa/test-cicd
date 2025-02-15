@@ -13,8 +13,9 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                sh "git clone -b staging git@github.com:tgrid-usa/test-cicd.git"
-                dir('tg-super-admin-dashboard') {
+                git branch: 'staging',
+                    credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e',
+                    url: 'https://github.com/tgrid-usa/test-cicd.git'
                     sh 'ls -la'
                 }
             }
