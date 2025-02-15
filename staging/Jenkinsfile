@@ -21,22 +21,15 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Checkout Docker File') {
             steps {
-                script {
-                    sh '''
-                    rm -rf staging-dockerfile
-                    git clone --no-checkout --depth 1 -b staging --filter=blob:none https://github.com/tgrid-usa/staging-dockerfile.git staging-dockerfile
-                    cd staging-dockerfile
-                    git sparse-checkout init --cone
-                    git sparse-checkout set Dockerfile
-                    git checkout
-                    mv Dockerfile ../Dockerfile
-                    cd ..
-                    rm -rf staging-dockerfile
-                    ls -la
-                    '''
+                dir('staging-dockerfile') {
+                    git branch: 'staging',
+                        credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e',
+                        url: 'https://github.com/tgrid-usa/staging-dockerfile.git'
+                    sh 'ls -la'
+                    sh 'mv Dockerfile ../Dockerfile'
                 }
             }
         }
@@ -59,7 +52,6 @@ pipeline {
                     script {
                         sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
                         sh "gcloud auth configure-docker asia-south1-docker.pkg.dev"
-
                         echo "Listing images in Google Artifact Registry:"
                         sh "gcloud container images list-tags asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd --format=json"
                     }
