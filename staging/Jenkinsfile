@@ -22,7 +22,6 @@ pipeline {
             }
         }
         
-    stages {
         stage('Checkout Docker File') {
             steps {
                 script {
@@ -41,7 +40,6 @@ pipeline {
                 }
             }
         }
-    }
 
         stage('Build') {
             steps {
