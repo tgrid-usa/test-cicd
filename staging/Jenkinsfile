@@ -30,6 +30,7 @@ pipeline {
                         url: 'https://github.com/tgrid-usa/staging-dockerfile.git'
                     sh 'ls -la'
                     sh 'cp test-cicd/Dockerfile ../Dockerfile'
+                    sh 'cat Dockerfile'
                     sh 'rm -rf *'
                 }
             }
