@@ -34,13 +34,15 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('List Images in GCP Artifact Registry') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-staging', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     script {
                         sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
-                        sh "gcloud auth configure-docker"
-                        sh "gcloud container images list-tags gcr.io/trustgrid/test-cicd"
+                        sh "gcloud auth configure-docker asia-south1-docker.pkg.dev"
+
+                        echo "Listing images in Google Artifact Registry:"
+                        sh "gcloud container images list-tags asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd --format=json"
                     }
                 }
             }
