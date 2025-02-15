@@ -43,6 +43,7 @@ pipeline {
                         sh "gcloud container images list-tags gcr.io/trustgrid/test-cicd"
                     }
                 }
+            }
         }
     }
 }
