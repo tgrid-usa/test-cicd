@@ -70,8 +70,8 @@ pipeline {
                         def dockerImageName = "asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd:${dockerImageTag}"
 
                         withCredentials([file(credentialsId: 'gcp-staging', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                            sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
-                            sh "gcloud auth configure-docker asia-south1-docker.pkg.dev"
+                            sh "sudo gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
+                            sh "sudo gcloud auth configure-docker asia-south1-docker.pkg.dev"
 
                             sh "sudo docker build -t ${dockerImageName} ."
                             sh "sudo docker push ${dockerImageName}"
