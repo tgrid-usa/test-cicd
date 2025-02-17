@@ -59,5 +59,27 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy') {
+            steps {
+                dir('tg-test-cicd') {
+                    script {
+                        sh "git rev-parse --short HEAD > commitHash.txt"
+                        def commitHash = sh(script: "cat commitHash.txt", returnStdout: true).trim()
+                        def dockerImageTag = "test-cicd-${commitHash}"
+                        def dockerImageName = "asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd:${dockerImageTag}"
+
+                        withCredentials([file(credentialsId: 'gcp-staging', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                            sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
+                            sh "gcloud auth configure-docker asia-south1-docker.pkg.dev"
+
+                            sh "docker build -t ${dockerImageName} ."
+                            sh "docker push ${dockerImageName}"
+                            sh "docker rmi ${dockerImageName}"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
