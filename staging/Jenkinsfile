@@ -73,9 +73,9 @@ pipeline {
                             sh "gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}"
                             sh "gcloud auth configure-docker asia-south1-docker.pkg.dev"
 
-                            sh "docker build -t ${dockerImageName} ."
-                            sh "docker push ${dockerImageName}"
-                            sh "docker rmi ${dockerImageName}"
+                            sh "sudo docker build -t ${dockerImageName} ."
+                            sh "sudo docker push ${dockerImageName}"
+                            sh "sudo docker rmi ${dockerImageName}"
                         }
                     }
                 }
