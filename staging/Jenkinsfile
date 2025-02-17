@@ -28,7 +28,7 @@ pipeline {
                     credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e',
                     url: 'https://github.com/tgrid-usa/staging-dockerfile.git'
                 sh 'ls -la'
-                sh 'cp test-cicd/Dockerfile ./Dockerfile'
+                sh 'cp test-cicd/Dockerfile ./tg-test-cicd/Dockerfile'
                 sh 'cat Dockerfile'
                 sh 'ls -la'
                 sh 'pwd'
