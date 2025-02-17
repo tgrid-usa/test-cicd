@@ -54,7 +54,7 @@ pipeline {
             steps {
                 dir('tg-test-cicd') {
                     sh "echo $SCANNER_HOME"
-                    withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonarqube') {
+                    withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonar-scanner') {
                         sh '''
                         $SCANNER_HOME/bin/sonar-scanner \
                         -Dsonar.projectKey=TG-Test-CICD \
