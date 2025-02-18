@@ -119,11 +119,19 @@ pipeline {
                         def commitHash = sh(script: "cat ${WORKSPACE}/${WORKING_DIR}/commitHash.txt", returnStdout: true).trim()
                         def currentCommitHash = "${IMAGE_NAME}-${commitHash}"
 
+                        // Fetch latest changes from the remote branch
+                        sh "cd ${WORKSPACE}/healm-charts && git fetch origin"
+                        
+                        // Merge remote changes to the local branch to avoid rejection during push
+                        sh "cd ${WORKSPACE}/healm-charts && git merge origin/${BRANCH} --no-edit"
+
+                        // Update the tag in values.yaml
                         sh """
                             cd ${WORKSPACE}/healm-charts/test-cicd/
                             sed -i 's|tag:.*|tag: "${currentCommitHash}"|' values.yaml
                         """
 
+                        // Commit and push the changes
                         sh """
                         cd ${WORKSPACE}/healm-charts
                         git add -A
@@ -136,3 +144,4 @@ pipeline {
         }
     }
 }
+
