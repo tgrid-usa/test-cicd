@@ -79,7 +79,9 @@ pipeline {
                     script {
                         sh "git rev-parse --short HEAD > commitHash.txt"
                         def commitHash = sh(script: "cat commitHash.txt", returnStdout: true).trim()
-                        def dockerImageTag = "${commitHash}"  // Only use commit hash as the tag
+
+                        // Use DOCKERFILE_DIR variable for the Docker tag
+                        def dockerImageTag = "${DOCKERFILE_DIR}-${commitHash}"
                         def dockerImageName = "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_NAME}:${dockerImageTag}"
 
                         withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
@@ -117,7 +119,7 @@ pipeline {
                         cd ${WORKSPACE}/${WORKING_DIR} && git rev-parse --short HEAD > commitHash.txt
                         """
                         def commitHash = sh(script: "cat ${WORKSPACE}/${WORKING_DIR}/commitHash.txt", returnStdout: true).trim()
-                        def currentCommitHash = "${IMAGE_NAME}-${commitHash}"
+                        def currentCommitHash = "${DOCKERFILE_DIR}-${commitHash}"
 
                         // Fetch latest changes from the remote branch
                         sh "cd ${WORKSPACE}/healm-charts && git fetch origin"
@@ -144,4 +146,3 @@ pipeline {
         }
     }
 }
-
