@@ -110,7 +110,7 @@ pipeline {
                         cd ${WORKSPACE}/tg-test-cicd && git rev-parse --short HEAD > commitHash.txt
                         '''
                         def commitHash = sh(script: "cat ${WORKSPACE}/tg-test-cicd/commitHash.txt", returnStdout: true).trim()
-                        def currentCommitHash = "tg-test-cicd-${commitHash}"
+                        def currentCommitHash = "test-cicd-${commitHash}"
 
                         sh """
                             cd ${WORKSPACE}/healm-charts/test-cicd/
