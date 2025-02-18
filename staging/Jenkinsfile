@@ -79,7 +79,7 @@ pipeline {
                     script {
                         sh "git rev-parse --short HEAD > commitHash.txt"
                         def commitHash = sh(script: "cat commitHash.txt", returnStdout: true).trim()
-                        def dockerImageTag = "${IMAGE_NAME}-${commitHash}"
+                        def dockerImageTag = "${IMAGE_NAME}-${commitHash}"  // Corrected tag format
                         def dockerImageName = "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_NAME}:${dockerImageTag}"
 
                         withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
