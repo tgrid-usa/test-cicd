@@ -84,12 +84,12 @@ pipeline {
 
                         withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                             sh """
-                               gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                               gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
+                               sudo gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                               sudo gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
                             """
-                            sh "docker build -t ${dockerImageName} ."
-                            sh "docker push ${dockerImageName}"
-                            sh "docker rmi ${dockerImageName}"
+                            sh "sudo docker build -t ${dockerImageName} ."
+                            sh "sudo docker push ${dockerImageName}"
+                            sh "sudo docker rmi ${dockerImageName}"
                         }
                     }
                 }
