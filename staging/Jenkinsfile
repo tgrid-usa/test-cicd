@@ -35,18 +35,6 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                echo 'Building...'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo 'Testing...'
-            }
-        }
-
         stage('SonarQube analysis') {
             environment {
                 SCANNER_HOME = tool 'sonar-scanner'
@@ -108,6 +96,33 @@ pipeline {
                         '''
                         echo "Listing images in Google Artifact Registry:"
                         sh "gcloud container images list-tags asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd --format=json"
+                    }
+                }
+            }
+        }
+
+        stage('Post Deploy') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh '''
+                        git clone -b staging https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/staging-helm.git healm-charts || true
+                        cd ${WORKSPACE}/tg-test-cicd && git rev-parse --short HEAD > commitHash.txt
+                        '''
+                        def commitHash = sh(script: "cat ${WORKSPACE}/tg-test-cicd/commitHash.txt", returnStdout: true).trim()
+                        def currentCommitHash = "tg-test-cicd-${commitHash}"
+
+                        sh """
+                            cd ${WORKSPACE}/healm-charts/test-cicd/
+                            sed -i 's|tag:.*|tag: "${currentCommitHash}"|' values.yaml
+                        """
+
+                        sh '''
+                        cd ${WORKSPACE}/healm-charts
+                        git add -A
+                        git commit -m 'values file tag changed'
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/staging-helm.git
+                        '''
                     }
                 }
             }
