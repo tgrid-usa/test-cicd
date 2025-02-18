@@ -1,6 +1,23 @@
 pipeline {
     agent any
 
+    environment {
+        REPO_CICD = 'https://github.com/tgrid-usa/test-cicd.git'
+        REPO_DOCKERFILE = 'https://github.com/tgrid-usa/tgrid-dockerfile.git'
+        REPO_HELM = 'https://github.com/tgrid-usa/tgrid-helm.git'
+        BRANCH = 'staging'
+        CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
+        SONAR_PROJECT_KEY = 'TG-Test-CICD'
+        SONAR_PROJECT_NAME = 'Issuer-TG-Test-CICD'
+        SONAR_LANGUAGE = 'js'
+        GCP_CREDENTIALS_ID = 'gcp-staging'
+        GCP_REGION = 'asia-south1'
+        GCP_PROJECT = 'tg-uat-446010'
+        IMAGE_NAME = 'trustgrid/test-cicd'
+        WORKING_DIR = 'tg-test-cicd'
+        DOCKERFILE_DIR = 'test-cicd'
+    }
+
     stages {
         stage('Get approval') {
             options {
@@ -13,10 +30,8 @@ pipeline {
 
         stage('Checkout Latest Code') {
             steps {
-                dir('tg-test-cicd') {
-                    git branch: 'staging',
-                        credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e',
-                        url: 'https://github.com/tgrid-usa/test-cicd.git'
+                dir(WORKING_DIR) {
+                    git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
                     sh 'ls -la'
                 }
             }
@@ -24,14 +39,10 @@ pipeline {
 
         stage('Checkout Docker File') {
             steps {
-                git branch: 'staging',
-                    credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e',
-                    url: 'https://github.com/tgrid-usa/tgrid-dockerfile.git'
+                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_DOCKERFILE
                 sh 'ls -la'
-                sh 'cp test-cicd/Dockerfile ./tg-test-cicd/Dockerfile'
+                sh "cp ${DOCKERFILE_DIR}/Dockerfile ./${WORKING_DIR}/Dockerfile"
                 sh 'cat Dockerfile'
-                sh 'ls -la'
-                sh 'pwd'
             }
         }
 
@@ -40,16 +51,15 @@ pipeline {
                 SCANNER_HOME = tool 'sonar-scanner'
             }
             steps {
-                dir('tg-test-cicd') {
-                    sh "echo $SCANNER_HOME"
+                dir(WORKING_DIR) {
                     withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonar-scanner') {
-                        sh '''
+                        sh """
                         $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectKey=TG-Test-CICD \
-                        -Dsonar.projectName=Issuer-TG-Test-CICD \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                         -Dsonar.sources=. \
-                        -Dsonar.language=js
-                        '''
+                        -Dsonar.language=${SONAR_LANGUAGE}
+                        """
                     }
                 }
             }
@@ -65,21 +75,21 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                dir('tg-test-cicd') {
+                dir(WORKING_DIR) {
                     script {
                         sh "git rev-parse --short HEAD > commitHash.txt"
                         def commitHash = sh(script: "cat commitHash.txt", returnStdout: true).trim()
-                        def dockerImageTag = "test-cicd-${commitHash}"
-                        def dockerImageName = "asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd:${dockerImageTag}"
+                        def dockerImageTag = "${IMAGE_NAME}-${commitHash}"
+                        def dockerImageName = "${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_NAME}:${dockerImageTag}"
 
-                        withCredentials([file(credentialsId: 'gcp-staging', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                            sh '''
-                               sudo gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                               sudo gcloud auth configure-docker asia-south1-docker.pkg.dev
-                            '''
-                            sh "sudo docker build -t ${dockerImageName} ."
-                            sh "sudo docker push ${dockerImageName}"
-                            sh "sudo docker rmi ${dockerImageName}"
+                        withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                            sh """
+                               gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                               gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
+                            """
+                            sh "docker build -t ${dockerImageName} ."
+                            sh "docker push ${dockerImageName}"
+                            sh "docker rmi ${dockerImageName}"
                         }
                     }
                 }
@@ -88,15 +98,12 @@ pipeline {
 
         stage('List Images in GCP Artifact Registry') {
             steps {
-                withCredentials([file(credentialsId: 'gcp-staging', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    script {
-                        sh '''
-                           gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                           gcloud auth configure-docker asia-south1-docker.pkg.dev
-                        '''
-                        echo "Listing images in Google Artifact Registry:"
-                        sh "gcloud container images list-tags asia-south1-docker.pkg.dev/tg-uat-446010/trustgrid/test-cicd --format=json"
-                    }
+                withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh """
+                       gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                       gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
+                       gcloud container images list-tags ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/${IMAGE_NAME} --format=json
+                    """
                 }
             }
         }
@@ -104,25 +111,25 @@ pipeline {
         stage('Post Deploy') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                        sh '''
-                        git clone -b staging https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/tgrid-helm.git healm-charts || true
-                        cd ${WORKSPACE}/tg-test-cicd && git rev-parse --short HEAD > commitHash.txt
-                        '''
-                        def commitHash = sh(script: "cat ${WORKSPACE}/tg-test-cicd/commitHash.txt", returnStdout: true).trim()
-                        def currentCommitHash = "test-cicd-${commitHash}"
+                    withCredentials([usernamePassword(credentialsId: CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        sh """
+                        git clone -b ${BRANCH} https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_HELM} healm-charts || true
+                        cd ${WORKSPACE}/${WORKING_DIR} && git rev-parse --short HEAD > commitHash.txt
+                        """
+                        def commitHash = sh(script: "cat ${WORKSPACE}/${WORKING_DIR}/commitHash.txt", returnStdout: true).trim()
+                        def currentCommitHash = "${IMAGE_NAME}-${commitHash}"
 
                         sh """
                             cd ${WORKSPACE}/healm-charts/test-cicd/
                             sed -i 's|tag:.*|tag: "${currentCommitHash}"|' values.yaml
                         """
 
-                        sh '''
+                        sh """
                         cd ${WORKSPACE}/healm-charts
                         git add -A
-                        git commit -m 'values file tag changed'
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/tgrid-helm.git
-                        '''
+                        git commit -m 'Updated image tag in values.yaml'
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_HELM}
+                        """
                     }
                 }
             }
