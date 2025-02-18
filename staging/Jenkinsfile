@@ -26,7 +26,7 @@ pipeline {
             steps {
                 git branch: 'staging',
                     credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e',
-                    url: 'https://github.com/tgrid-usa/staging-dockerfile.git'
+                    url: 'https://github.com/tgrid-usa/tgrid-dockerfile.git'
                 sh 'ls -la'
                 sh 'cp test-cicd/Dockerfile ./tg-test-cicd/Dockerfile'
                 sh 'cat Dockerfile'
@@ -106,7 +106,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: '5bb806d0-f7ec-44bb-bcf9-6194de97138e', usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                         sh '''
-                        git clone -b staging https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/staging-helm.git healm-charts || true
+                        git clone -b staging https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/tgrid-helm.git healm-charts || true
                         cd ${WORKSPACE}/tg-test-cicd && git rev-parse --short HEAD > commitHash.txt
                         '''
                         def commitHash = sh(script: "cat ${WORKSPACE}/tg-test-cicd/commitHash.txt", returnStdout: true).trim()
@@ -121,7 +121,7 @@ pipeline {
                         cd ${WORKSPACE}/healm-charts
                         git add -A
                         git commit -m 'values file tag changed'
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/staging-helm.git
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/tgrid-helm.git
                         '''
                     }
                 }
