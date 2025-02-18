@@ -128,7 +128,7 @@ pipeline {
                         cd ${WORKSPACE}/healm-charts
                         git add -A
                         git commit -m 'Updated image tag in values.yaml'
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_HELM}
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/tgrid-helm.git
                         """
                     }
                 }
