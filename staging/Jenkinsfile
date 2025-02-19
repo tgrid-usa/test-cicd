@@ -4,7 +4,7 @@ pipeline {
     environment {
         REPO_CICD = 'https://github.com/tgrid-usa/test-cicd.git'
         REPO_DOCKERFILE = 'https://github.com/tgrid-usa/tgrid-dockerfile.git'
-        REPO_HELM = 'https://github.com/tgrid-usa/tgrid-helm.git'
+        REPO_HELM = 'github.com/tgrid-usa/tgrid-helm.git'
         BRANCH = 'staging'
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
         SONAR_PROJECT_KEY = 'TG-Test-CICD'
@@ -42,7 +42,7 @@ pipeline {
                 git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_DOCKERFILE
                 sh 'ls -la'
                 sh "cp ${DOCKERFILE_DIR}/Dockerfile ./${WORKING_DIR}/Dockerfile"
-                sh 'cat Dockerfile'
+                sh "cat ${WORKING_DIR}/Dockerfile"
             }
         }
 
@@ -138,7 +138,7 @@ pipeline {
                         cd ${WORKSPACE}/healm-charts
                         git add -A
                         git commit -m 'Updated image tag in values.yaml'
-                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/tgrid-usa/tgrid-helm.git
+                        git push https://${GIT_USERNAME}:${GIT_PASSWORD}@${REPO_HELM}
                         """
                     }
                 }
