@@ -22,8 +22,10 @@ pipeline {
 
         stage('Checkout Latest Code') {
             steps {
-                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
-                sh "ls -la"
+                dir(CLONE_DIR) {
+                    git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
+                    sh "ls -la"
+                }
             }
         }
 
