@@ -5,8 +5,9 @@ pipeline {
         REPO_CICD = 'https://github.com/tgrid-usa/test-cicd.git'
         BRANCH = 'fnt-bkt-test-cicd'
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
-        GCP_BUCKET = 'gs://testhellotgh'
+        GCP_BUCKET = 'gs://testhellotg'
         GCP_CREDENTIALS_ID = 'gcp-staging'
+        EXCLUDED_FILES = '.*\.git.*|README.md|Jenkinsfile' 
     }
 
     stages {
@@ -32,7 +33,7 @@ pipeline {
                     withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                         sh """
                         gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                        gsutil -m rsync -r . ${GCP_BUCKET}
+                        gsutil -m rsync -r -x '${EXCLUDED_FILES}' . ${GCP_BUCKET}
                         """
                     }
                 }
