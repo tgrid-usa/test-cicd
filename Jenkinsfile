@@ -30,9 +30,9 @@ pipeline {
         stage('Check GCP Bucket Existence') {
             steps {
                 script {
-                    def bucketExists = sh(script: "gsutil ls gs://testhellotg", returnStatus: true)
+                    def bucketExists = sh(script: "gsutil ls ${GCP_BUCKET}", returnStatus: true)
                     if (bucketExists != 0) {
-                        error "Bucket 'testhellotg' does not exist. Please create the bucket."
+                        error "Bucket '${GCP_BUCKET}' does not exist. Please create the bucket."
                     }
                 }
             }
