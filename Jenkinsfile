@@ -7,7 +7,7 @@ pipeline {
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
         GCP_BUCKET = 'gs://testhellotg'
         GCP_CREDENTIALS_ID = 'gcp-staging'
-        EXCLUDED_FILES = '.*\\.git.*|README.md|Jenkinsfile'  // Escape dot (.) in .git
+        EXCLUDED_FILES = '.*\\.git.*|README.md|Jenkinsfile'
     }
 
     stages {
@@ -24,6 +24,14 @@ pipeline {
             steps {
                 git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
                 sh 'ls -la'
+            }
+        }
+
+        stage('Check GCP Bucket Existence') {
+            steps {
+                script {
+                    sh "gsutil ls gs://testhellotg || echo 'Bucket not found'"
+                }
             }
         }
 
