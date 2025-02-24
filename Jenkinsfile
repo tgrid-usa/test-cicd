@@ -1,22 +1,33 @@
 pipeline {
     agent any
+
+    environment {
+        REPO_CICD = 'https://github.com/tgrid-usa/test-cicd.git'
+        BRANCH = 'fnt-bkt-test-cicd'
+        CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
+    }
+
     stages {
-        stage('Build') {
+        stage('Get approval') {
+            options {
+                timeout(time: 59, unit: 'MINUTES')
+            }
             steps {
-                echo 'Building...'
-               
+                input "Please Approve To Proceed The Deployment"
             }
         }
-        stage('Test') {
+
+        stage('Checkout Latest Code') {
             steps {
-                echo 'Testing...'
-              
+                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
+                sh 'ls -la'
             }
         }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying...'
-            }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
