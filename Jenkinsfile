@@ -22,16 +22,16 @@ pipeline {
 
         stage('Checkout Latest Code') {
             steps {
-                sh "git clone -b ${BRANCH} ${REPO_CICD} ${CLONE_DIR}"
-                sh "ls -la ${CLONE_DIR}"
+                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
+                sh "ls -la"
             }
         }
 
-        stage('Install dependencies and Build') {
+        stage('Install Dependencies and Build') {
             steps {
-                dir("${CLONE_DIR}") {
-                    sh 'yarn install'
-                    sh 'yarn build'
+                dir(CLONE_DIR) {
+                    sh "yarn"
+                    sh "yarn build"
                 }
             }
         }
@@ -52,7 +52,7 @@ pipeline {
                 withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     sh '''
                     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" ${CLONE_DIR}/build/ ${GCP_BUCKET}
+                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" . ${GCP_BUCKET}
                     '''
                 }
             }
