@@ -7,7 +7,6 @@ pipeline {
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
         GCP_BUCKET = 'gs://testhellotgh'
         GCP_CREDENTIALS_ID = 'gcp-staging'
-        EXCLUDED_FILES = '(\\.git|README.md|Jenkinsfile)'
     }
 
     stages {
@@ -43,7 +42,7 @@ pipeline {
                 withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     sh '''
                     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                    gsutil -m rsync -r -x '${EXCLUDED_FILES}' . ${GCP_BUCKET}
+                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" . ${GCP_BUCKET}
                     '''
                 }
             }
