@@ -52,7 +52,7 @@ pipeline {
                 withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     sh '''
                     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" ${CLONE_DIR}/build/ ${GCP_BUCKET}
+                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" ${CLONE_DIR}/build/ ${GCP_BUCKET}/
                     '''
                 }
             }
