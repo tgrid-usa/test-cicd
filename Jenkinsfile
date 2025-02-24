@@ -30,20 +30,21 @@ pipeline {
         stage('Check GCP Bucket Existence') {
             steps {
                 script {
-                    sh "gsutil ls gs://testhellotg || echo 'Bucket not found'"
+                    def bucketExists = sh(script: "gsutil ls gs://testhellotg", returnStatus: true)
+                    if (bucketExists != 0) {
+                        error "Bucket 'testhellotg' does not exist. Please create the bucket."
+                    }
                 }
             }
         }
 
         stage('Upload to GCP Bucket') {
             steps {
-                script {
-                    withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                        sh """
-                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                        gsutil -m rsync -r -x '${EXCLUDED_FILES}' . ${GCP_BUCKET}
-                        """
-                    }
+                withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    sh '''
+                    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                    gsutil -m rsync -r -x '${EXCLUDED_FILES}' . ${GCP_BUCKET}
+                    '''
                 }
             }
         }
