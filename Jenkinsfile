@@ -7,6 +7,7 @@ pipeline {
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
         GCP_BUCKET = 'gs://testhellotgh'
         GCP_CREDENTIALS_ID = 'gcp-staging'
+        CLONE_DIR = 'tg-fnt-bkt-test-cicd'
     }
 
     stages {
@@ -21,8 +22,17 @@ pipeline {
 
         stage('Checkout Latest Code') {
             steps {
-                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
-                sh 'ls -la'
+                sh "git clone -b ${BRANCH} ${REPO_CICD} ${CLONE_DIR}"
+                sh "ls -la ${CLONE_DIR}"
+            }
+        }
+
+        stage('Install dependencies and Build') {
+            steps {
+                dir("${CLONE_DIR}") {
+                    sh 'yarn install'
+                    sh 'yarn build'
+                }
             }
         }
 
@@ -42,7 +52,7 @@ pipeline {
                 withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     sh '''
                     gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" . ${GCP_BUCKET}
+                    gsutil -m rsync -r -x "(\\.git|README.md|Jenkinsfile)" ${CLONE_DIR}/build/ ${GCP_BUCKET}
                     '''
                 }
             }
