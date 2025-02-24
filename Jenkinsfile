@@ -32,6 +32,7 @@ pipeline {
                 dir(CLONE_DIR) {
                     sh "yarn"
                     sh "yarn build"
+                    sh "ls -la"
                 }
             }
         }
