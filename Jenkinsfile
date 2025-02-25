@@ -8,6 +8,9 @@ pipeline {
         GCP_BUCKET = 'gs://testhellotgh'
         GCP_CREDENTIALS_ID = 'gcp-staging'
         CLONE_DIR = 'tg-fnt-bkt-test-cicd'
+        SONAR_PROJECT_KEY = 'TG-Test-CICD'
+        SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
+        SONAR_LANGUAGE = 'js'
     }
 
     stages {
@@ -35,6 +38,33 @@ pipeline {
                     sh "yarn"
                     sh "yarn build"
                     sh "ls -la"
+                }
+            }
+        }
+
+        stage('SonarQube analysis') {
+            environment {
+                SCANNER_HOME = tool 'sonar-scanner'
+            }
+            steps {
+                dir(CLONE_DIR) {
+                    withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonar-scanner') {
+                        sh """
+                        $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                        -Dsonar.sources=. \
+                        -Dsonar.language=${SONAR_LANGUAGE}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: false
                 }
             }
         }
