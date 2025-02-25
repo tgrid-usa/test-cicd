@@ -7,10 +7,13 @@ pipeline {
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
         GCP_BUCKET = 'gs://testhellotgh'
         GCP_CREDENTIALS_ID = 'gcp-staging'
+        GCP_REGION = 'asia-south1'
+        GCP_PROJECT = 'tg-uat-446010'
         CLONE_DIR = 'tg-fnt-bkt-test-cicd'
         SONAR_PROJECT_KEY = 'TG-Test-CICD'
         SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
         SONAR_LANGUAGE = 'js'
+        GCP_SECRET_NAME = 'Test-CICD-Secret'
     }
 
     stages {
@@ -28,6 +31,21 @@ pipeline {
                 dir(CLONE_DIR) {
                     git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
                     sh "ls -la"
+                }
+            }
+        }
+
+        stage('Create .env from GCP Secret Manager') {
+            steps {
+                withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    dir(CLONE_DIR) {
+                        sh '''
+                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                        SECRET_VALUE=$(gcloud secrets versions access latest --secret="$GCP_SECRET_NAME" --project="$GCP_PROJECT")
+                        echo "REACT_APP_MY_SECRET_KEY=$SECRET_VALUE" > .env
+                        cat .env
+                        '''
+                    }
                 }
             }
         }
