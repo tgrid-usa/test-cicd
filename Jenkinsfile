@@ -42,7 +42,7 @@ pipeline {
                         sh '''
                         gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
                         SECRET_VALUE=$(gcloud secrets versions access latest --secret="$GCP_SECRET_NAME" --project="$GCP_PROJECT")
-                        echo "REACT_APP_MY_SECRET_KEY=$SECRET_VALUE" > .env
+                        echo "$SECRET_VALUE" > .env
                         cat .env
                         '''
                     }
