@@ -11,7 +11,7 @@ pipeline {
         GCP_PROJECT = 'tg-uat-446010'
         CLONE_DIR = 'tg-fnt-bkt-test-cicd'
         SONAR_PROJECT_KEY = 'TG-Test-CICD'
-        SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
+        SONAR_PROJECT_NAME = 'Issues-TG-Test-CICD'
         SONAR_ORG = 'trustgrid-staging'
         SONAR_URL = 'https://sonarcloud.io'
         SCANNER_HOME = tool 'sonar-scanner'
