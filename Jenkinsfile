@@ -12,6 +12,8 @@ pipeline {
         CLONE_DIR = 'tg-fnt-bkt-test-cicd'
         SONAR_PROJECT_KEY = 'TG-Test-CICD'
         SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
+        SONAR_ORG = 'trustgrid-staging'
+        SONAR_URL = 'https://sonarcloud.io'
         SONAR_LANGUAGE = 'js'
         GCP_SECRET_NAME = 'Test-CICD-Secret'
     }
@@ -28,6 +30,11 @@ pipeline {
 
         stage('Checkout Latest Code') {
             steps {
+                script {
+                    if (!fileExists(CLONE_DIR)) {
+                        sh "mkdir -p ${CLONE_DIR}"
+                    }
+                }
                 dir(CLONE_DIR) {
                     git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_CICD
                     sh "ls -la"
@@ -53,26 +60,25 @@ pipeline {
         stage('Install Dependencies and Build') {
             steps {
                 dir(CLONE_DIR) {
-                    sh "yarn"
+                    sh "yarn install --frozen-lockfile"
                     sh "yarn build"
                     sh "ls -la"
                 }
             }
         }
 
-        stage('SonarQube analysis') {
-            environment {
-                SCANNER_HOME = tool 'sonarqube-cloud'
-            }
+        stage('SonarCloud Analysis') {
             steps {
                 dir(CLONE_DIR) {
-                    withSonarQubeEnv(credentialsId: 'sonarcloud', installationName: 'sonarqube-cloud') {
+                    withSonarQubeEnv(credentialsId: 'sonarcloud') {
                         sh """
-                        $SCANNER_HOME/bin/sonar-scanner \
+                        sonar-scanner \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.organization=${SONAR_ORG} \
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                         -Dsonar.sources=. \
-                        -Dsonar.language=${SONAR_LANGUAGE}
+                        -Dsonar.host.url=${SONAR_URL} \
+                        -Dsonar.token=${SONAR_TOKEN}
                         """
                     }
                 }
@@ -81,8 +87,8 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: false
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
@@ -90,7 +96,7 @@ pipeline {
         stage('Check GCP Bucket Existence') {
             steps {
                 script {
-                    def bucketExists = sh(script: "gsutil ls ${GCP_BUCKET}", returnStatus: true)
+                    def bucketExists = sh(script: "gsutil ls ${GCP_BUCKET} >/dev/null 2>&1", returnStatus: true)
                     if (bucketExists != 0) {
                         error "Bucket '${GCP_BUCKET}' does not exist. Please create the bucket."
                     }
