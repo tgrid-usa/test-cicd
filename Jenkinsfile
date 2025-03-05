@@ -14,7 +14,7 @@ pipeline {
         SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
         SONAR_ORG = 'trustgrid-staging'
         SONAR_URL = 'https://sonarcloud.io'
-        SCANNER_HOME = tool 'sonar-scanner'  // Ensure this tool is configured
+        SCANNER_HOME = tool 'sonar-scanner'
         SONAR_LANGUAGE = 'js'
         GCP_SECRET_NAME = 'Test-CICD-Secret'
     }
@@ -71,7 +71,8 @@ pipeline {
         stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('SonarQube') { // Added the SonarQube environment setup
+                    // Ensure the SonarQube environment is set up before running the analysis
+                    withSonarQubeEnv('SonarQube') {  // The argument 'SonarQube' should match your SonarQube server configuration in Jenkins
                         dir(CLONE_DIR) {
                             sh """
                             $SCANNER_HOME/bin/sonar-scanner \
