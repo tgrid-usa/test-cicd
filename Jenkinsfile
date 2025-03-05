@@ -74,6 +74,9 @@ pipeline {
                     withSonarQubeEnv('sonarqube-cloud') {
                         dir(CLONE_DIR) {
                             sh """
+                            echo "sonar.projectKey: ${SONAR_PROJECT_KEY}"
+                            echo "sonar.organization: ${SONAR_ORG}"
+                            echo "sonar.token: $SONAR_TOKEN"
                             $SCANNER_HOME/bin/sonar-scanner \
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                             -Dsonar.organization=${SONAR_ORG} \
