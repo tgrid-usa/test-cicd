@@ -69,8 +69,8 @@ pipeline {
 
         stage('SonarCloud Analysis') {
             steps {
-                dir(CLONE_DIR) {
-                    withSonarQubeEnv(credentialsId: 'sonarcloud') {
+                withCredentials([string(credentialsId: 'sonarcloud-token', variable: 'SONAR_TOKEN')]) {
+                    dir(CLONE_DIR) {
                         sh """
                         sonar-scanner \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
@@ -78,7 +78,7 @@ pipeline {
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=${SONAR_URL} \
-                        -Dsonar.token=${SONAR_TOKEN}
+                        -Dsonar.token=$SONAR_TOKEN
                         """
                     }
                 }
