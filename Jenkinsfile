@@ -11,7 +11,7 @@ pipeline {
         GCP_PROJECT = 'tg-uat-446010'
         CLONE_DIR = 'tg-fnt-bkt-test-cicd'
         SONAR_PROJECT_KEY = 'TG-Test-CICD'
-        SONAR_PROJECT_NAME = 'I-TG-Test-CICD'
+        SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
         SONAR_ORG = 'trustgrid-staging'
         SONAR_URL = 'https://sonarcloud.io'
         SCANNER_HOME = tool 'sonar-scanner'
@@ -71,21 +71,16 @@ pipeline {
         stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
-                    withSonarQubeEnv('sonarqube-cloud') {
-                        dir(CLONE_DIR) {
-                            sh """
-                            echo "sonar.projectKey: ${SONAR_PROJECT_KEY}"
-                            echo "sonar.organization: ${SONAR_ORG}"
-                            echo "sonar.token: $SONAR_TOKEN"
-                            $SCANNER_HOME/bin/sonar-scanner \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.organization=${SONAR_ORG} \
-                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=${SONAR_URL} \
-                            -Dsonar.token=$SONAR_TOKEN
-                            """
-                        }
+                    dir(CLONE_DIR) {
+                        sh """
+                         $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.organization=${SONAR_ORG} \
+                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=${SONAR_URL} \
+                        -Dsonar.token=$SONAR_TOKEN
+                        """
                     }
                 }
             }
