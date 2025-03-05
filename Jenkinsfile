@@ -62,11 +62,11 @@ pipeline {
 
         stage('SonarQube analysis') {
             environment {
-                SCANNER_HOME = tool 'sonar-scanner'
+                SCANNER_HOME = tool 'sonarqube-cloud'
             }
             steps {
                 dir(CLONE_DIR) {
-                    withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonar-scanner') {
+                    withSonarQubeEnv(credentialsId: 'sonarcloud', installationName: 'sonarqube-cloud') {
                         sh """
                         $SCANNER_HOME/bin/sonar-scanner \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
