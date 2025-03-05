@@ -14,6 +14,7 @@ pipeline {
         SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
         SONAR_ORG = 'trustgrid-staging'
         SONAR_URL = 'https://sonarcloud.io'
+        SCANNER_HOME = tool 'sonar-scanner'
         SONAR_LANGUAGE = 'js'
         GCP_SECRET_NAME = 'Test-CICD-Secret'
     }
@@ -72,7 +73,7 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
                     dir(CLONE_DIR) {
                         sh """
-                        sonar-scanner \
+                         $SCANNER_HOME/bin/sonar-scanner \
                         -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                         -Dsonar.organization=${SONAR_ORG} \
                         -Dsonar.projectName=${SONAR_PROJECT_NAME} \
