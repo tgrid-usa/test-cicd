@@ -14,7 +14,7 @@ pipeline {
         SONAR_PROJECT_NAME = 'Issuerss-TG-Test-CICD'
         SONAR_ORG = 'trustgrid-staging'
         SONAR_URL = 'https://sonarcloud.io'
-        SCANNER_HOME = tool 'sonar-scanner'
+        SCANNER_HOME = tool 'sonar-scanner'  // Ensure this tool is configured
         SONAR_LANGUAGE = 'js'
         GCP_SECRET_NAME = 'Test-CICD-Secret'
     }
@@ -71,16 +71,18 @@ pipeline {
         stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
-                    dir(CLONE_DIR) {
-                        sh """
-                         $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.organization=${SONAR_ORG} \
-                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=${SONAR_URL} \
-                        -Dsonar.token=$SONAR_TOKEN
-                        """
+                    withSonarQubeEnv('SonarQube') { // Added the SonarQube environment setup
+                        dir(CLONE_DIR) {
+                            sh """
+                            $SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.organization=${SONAR_ORG} \
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_URL} \
+                            -Dsonar.token=$SONAR_TOKEN
+                            """
+                        }
                     }
                 }
             }
