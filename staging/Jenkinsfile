@@ -40,14 +40,7 @@ pipeline {
             }
         }
 
-        stage('Checkout Docker File') {
-            steps {
-                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_DOCKERFILE
-                sh 'ls -la'
-                sh "cp ${DOCKERFILE_DIR}/Dockerfile ./${WORKING_DIR}/Dockerfile"
-                sh "cat ${WORKING_DIR}/Dockerfile"
-            }
-        }
+
 
         stage('SonarCloud Analysis') {
             steps {
@@ -74,6 +67,15 @@ pipeline {
                 timeout(time: 10, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            }
+        }
+
+        stage('Checkout Docker File') {
+            steps {
+                git branch: BRANCH, credentialsId: CREDENTIALS_ID, url: REPO_DOCKERFILE
+                sh 'ls -la'
+                sh "cp ${DOCKERFILE_DIR}/Dockerfile ./${WORKING_DIR}/Dockerfile"
+                sh "cat ${WORKING_DIR}/Dockerfile"
             }
         }
 
