@@ -9,6 +9,9 @@ pipeline {
         CREDENTIALS_ID = '5bb806d0-f7ec-44bb-bcf9-6194de97138e'
         SONAR_PROJECT_KEY = 'TG-Test-CICD'
         SONAR_PROJECT_NAME = 'Issuer-TG-Test-CICD'
+        SONAR_ORG = 'trustgrid-staging'
+        SONAR_URL = 'https://sonarcloud.io'
+        SCANNER_HOME = tool 'sonar-scanner'
         SONAR_LANGUAGE = 'js'
         GCP_CREDENTIALS_ID = 'gcp-staging'
         GCP_REGION = 'asia-south1'
@@ -46,20 +49,21 @@ pipeline {
             }
         }
 
-        stage('SonarQube analysis') {
-            environment {
-                SCANNER_HOME = tool 'sonar-scanner'
-            }
+        stage('SonarCloud Analysis') {
             steps {
-                dir(WORKING_DIR) {
-                    withSonarQubeEnv(credentialsId: 'sonarqube-token', installationName: 'sonar-scanner') {
-                        sh """
-                        $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                        -Dsonar.sources=. \
-                        -Dsonar.language=${SONAR_LANGUAGE}
-                        """
+                withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('SonarQube') { 
+                        dir(CLONE_DIR) {
+                            sh """
+                            $SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.organization=${SONAR_ORG} \
+                            -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=${SONAR_URL} \
+                            -Dsonar.token=$SONAR_TOKEN
+                            """
+                        }
                     }
                 }
             }
@@ -67,8 +71,8 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: false
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
