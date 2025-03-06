@@ -71,8 +71,7 @@ pipeline {
         stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
-                    // Ensure the SonarQube environment is set up before running the analysis
-                    withSonarQubeEnv('SonarQube') {  // The argument 'SonarQube' should match your SonarQube server configuration in Jenkins
+                    withSonarQubeEnv('SonarQube') { 
                         dir(CLONE_DIR) {
                             sh """
                             $SCANNER_HOME/bin/sonar-scanner \
