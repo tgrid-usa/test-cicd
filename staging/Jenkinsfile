@@ -53,7 +53,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
                     withSonarQubeEnv('SonarQube') { 
-                        dir(CLONE_DIR) {
+                        dir(WORKING_DIR) {
                             sh """
                             $SCANNER_HOME/bin/sonar-scanner \
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
