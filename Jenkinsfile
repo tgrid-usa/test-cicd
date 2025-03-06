@@ -43,31 +43,6 @@ pipeline {
             }
         }
 
-        stage('Create .env from GCP Secret Manager') {
-            steps {
-                withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
-                    dir(CLONE_DIR) {
-                        sh '''
-                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-                        SECRET_VALUE=$(gcloud secrets versions access latest --secret="$GCP_SECRET_NAME" --project="$GCP_PROJECT")
-                        echo "$SECRET_VALUE" > .env
-                        cat .env
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Install Dependencies and Build') {
-            steps {
-                dir(CLONE_DIR) {
-                    sh "yarn install --frozen-lockfile"
-                    sh "yarn build"
-                    sh "ls -la"
-                }
-            }
-        }
-
         stage('SonarCloud Analysis') {
             steps {
                 withCredentials([string(credentialsId: 'sonarcloud', variable: 'SONAR_TOKEN')]) {
@@ -95,6 +70,33 @@ pipeline {
                 }
             }
         }
+        
+        
+        stage('Create .env from GCP Secret Manager') {
+            steps {
+                withCredentials([file(credentialsId: GCP_CREDENTIALS_ID, variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    dir(CLONE_DIR) {
+                        sh '''
+                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                        SECRET_VALUE=$(gcloud secrets versions access latest --secret="$GCP_SECRET_NAME" --project="$GCP_PROJECT")
+                        echo "$SECRET_VALUE" > .env
+                        cat .env
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Install Dependencies and Build') {
+            steps {
+                dir(CLONE_DIR) {
+                    sh "yarn install --frozen-lockfile"
+                    sh "yarn build"
+                    sh "ls -la"
+                }
+            }
+        }
+
 
         stage('Check GCP Bucket Existence') {
             steps {
